@@ -23,9 +23,13 @@ app.use(cors({
     credentials:true,
     methods:["GET","POST","PUT","DELETE"]
 }))
-
 //define router
-app.use("/api/v1",userRoute)
+app.use("/api/v1", userRoute)
+app.get("/",(req,res)=>{
+    res.send("server is working")
+})
+
+
 
 export default app; 
 app.use(ErrorMiddleware)
