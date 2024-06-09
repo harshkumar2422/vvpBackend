@@ -1,1 +1,1 @@
-root: /opt/render/project/src
+web: node server.js
