@@ -10,11 +10,21 @@ const UserSchema = new mongoose.Schema({
   },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   docs: [
-    { title: String, public_id: String, url: String, resource_type: String },
+    {
+      title: String,
+      public_id: String,
+      url: String,
+      resource_type: String,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
   ],
   numOfDoc: {
-    type:Number,
-    default:0,  },
+    type: Number,
+    default: 0,
+  },
   otp: { type: String },
   otpExpiration: { type: Date },
   createdAt: {

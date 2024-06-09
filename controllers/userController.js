@@ -115,25 +115,24 @@ export const uploaddocs = async (req, res, next) => {
     next(error);
   }
 };
-
 export const adminuploaddocs = async (req, res, next) => {
   try {
-    const {type, name, email, title } = req.body;
-    if (!type||!name || !email || !title)
-      return next(new ErrorHandler("All fields are mandatory", 400));  
-      let user = await User.findOne({ email });
+    const { type, name, email, title } = req.body;
 
-    if (!user) {
-      user = await User.create({
-        name,
-        email,
-      });
-      if (!user) return next(new ErrorHandler("User is not created", 404));
+    // Check for mandatory fields
+    if (!type || !name || !email || !title) {
+      return next(new ErrorHandler("All fields are mandatory", 400));
+    }
+
+    // Ensure email is valid and not null
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return next(new ErrorHandler("Valid email is required", 400));
     }
 
     const files = req.files;
-    if (!files || files.length === 0)
+    if (!files || files.length === 0) {
       return next(new ErrorHandler("No files uploaded", 400));
+    }
 
     const docs = [];
     for (const file of files) {
@@ -155,16 +154,47 @@ export const adminuploaddocs = async (req, res, next) => {
       });
     }
 
-    user.docs.push(...docs);
-    user.numOfDoc = user.docs.length;
-    await user.save();
+    if (type === "User") {
+      let user = await User.findOne({ email });
 
-    res.status(201).json({
-      success: true,
-      message: "Documents uploaded successfully",
-      user,
-    });
-   
+      if (!user) {
+        const password = `${name}@123`;
+        const hashedPassword = await bcrypt.hash(password, 10);// Ensure password is created here
+        user = await User.create({ name, email, password:hashedPassword });
+        if (!user) return next(new ErrorHandler("User is not created", 404));
+      }
+
+      user.docs.push(...docs);
+      user.numOfDoc = user.docs.length;
+      await user.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Documents uploaded successfully",
+        user,
+      });
+
+    } else if (type === "Company") {
+      let company = await Company.findOne({ email });
+
+      if (!company) {
+        company = await Company.create({ name, email });
+        if (!company) return next(new ErrorHandler("Company is not created", 404));
+      }
+
+      company.docs.push(...docs);
+      company.numOfDoc = company.docs.length;
+      await company.save();
+
+      res.status(201).json({
+        success: true,
+        message: "Documents uploaded successfully",
+        company,
+      });
+    } else {
+      return next(new ErrorHandler("Invalid type specified", 400));
+    }
+
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -173,6 +203,10 @@ export const adminuploaddocs = async (req, res, next) => {
     });
   }
 };
+
+
+
+
 export const updateRole = async (req, res, next) => {
   const user = await User.findById(req.params.id);
   if (!user) {
@@ -214,6 +248,7 @@ export const getallUser = async (req, res, next) => {
     res.status(200).json({
       success: true,
       user,
+      message:"All Users lists"
     });
   } catch (error) {
     console.log(error);
@@ -440,6 +475,7 @@ export const getallCompany = async (req, res, next) => {
     res.status(200).json({
       success: true,
       comapny,
+      message:"All company lists"
     });
   } catch (error) {
     console.log(error);
@@ -463,6 +499,30 @@ export const deleteSingleDocumentCompany = async (req, res, next) => {
     });
     company.numOfDoc = company.docs.length;
     await company.save();
+    res.status(200).json({
+      success: true,
+      message:"Document is deleted"
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const deletemyDocument = async (req, res, next) => {
+  try {
+    const {  docsId } = req.query;
+    const user = await User.findById(req.user);
+    if (!user) return next(new ErrorHandler("User not found", 404));
+    const docss = user.docs.find((item) => {
+      if (item._id.toString() === docsId.toString()) return item;
+    });
+    await cloudinary.v2.uploader.destroy(docss.public_id, {
+      resource_type: docss.resource_type,
+    });
+    user.docs = user.docs.filter((item) => {
+      if (item._id.toString() !== docsId.toString()) return item;
+    });
+    user.numOfDoc = user.docs.length;
+    await user.save();
     res.status(200).json({
       success: true,
       message:"Document is deleted"
