@@ -5,8 +5,7 @@ import { sendToken } from "../utils/sendToken.js";
 import bcrypt from "bcrypt";
 import cloudinary from "cloudinary";
 import nodemailer from "nodemailer";
-import fs from 'fs';
-import path from "path";
+// import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
 
@@ -382,30 +381,21 @@ export const deleteSingleDocument = async (req, res, next) => {
     const { userId, docsId } = req.query;
     const user = await User.findById(userId);
     if (!user) return next(new ErrorHandler("User not found", 404));
-    const docIndex = user.docs.findIndex(doc => doc._id.toString() === docsId);
-    if (docIndex === -1) return next(new ErrorHandler("Document not found", 404));
-
-    const doc = user.docs[docIndex];
-    await cloudinary.v2.uploader.destroy(doc.public_id, {
-      resource_type: doc.resource_type,
+    const docss = user.docs.find((item) => {
+      if (item._id.toString() === docsId.toString()) return item;
     });
-
-    user.docs.splice(docIndex, 1);
+    await cloudinary.v2.uploader.destroy(docss.public_id, {
+      resource_type: docss.resource_type,
+    });
+    user.docs = user.docs.filter((item) => {
+      if (item._id.toString() !== docsId.toString()) return item;
+    });
     user.numOfDoc = user.docs.length;
     await user.save();
-    const filePath = path.join(__dirname, 'uploads/', doc.fileName);
-    fs.unlink(filePath, (err) => {
-      if (err) {
-        console.error("Failed to delete local file:", err);
-        return next(new ErrorHandler("Failed to delete local file", 500));
-      }
-
-      console.log("Local file deleted successfully");
-      res.status(200).json({
-        success: true,
-        message: "Document is deleted"
-      });
-    })
+    res.status(200).json({
+      success: true,
+      message:"Document is deleted"
+    });
   } catch (error) {
     console.log(error);
   }
