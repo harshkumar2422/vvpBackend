@@ -41,7 +41,7 @@ router.route("/deleteCompanyDoc").delete(isAuthenticated, authorizeAdmin, delete
 // Admin upload routes
 router.route("/admin/uploaddocs").post(isAuthenticated, authorizeAdmin, upload1.array("files"), adminuploaddocs);
 router.route("/admin/uploaddocscompany").post(upload1.array("files"), adminuploaddocs);
-router.route("/admin/getallUser").get( getallUser);
+router.route("/admin/getallUser").get(getallUser);
 router.route("/deleteUser/:id").delete(isAuthenticated, authorizeAdmin, deleteUser);
 router.route("/deleteDoc").delete(isAuthenticated, authorizeAdmin, deleteSingleDocument);
 router.route("/deletemyDoc").delete(isAuthenticated, deletemyDocument);
