@@ -6,8 +6,5 @@
       "use": "@vercel/node"
     }
   ],
-  "buildCommand": "npm run vercel-build",
-  "engines": {
-    "node": "14.x"
-  }
+  "buildCommand": "npm run vercel-build"
 }
