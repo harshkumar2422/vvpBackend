@@ -1,17 +1,10 @@
-
-  {
-    "version": 2,
-    "builds": [
-      {
-        "src": "package.json",
-        "use": "@vercel/node",
-        "config": {
-          "zeroConfig": true
-        }
-      }
-    ],
-    "scripts": {
-      "build": "npm install --force && npm run build"
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/node"
     }
-  }
-  
+  ],
+  "buildCommand": "npm run vercel-build"
+}
